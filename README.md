@@ -1,2 +1,4 @@
 # usc_ctf_team_server_bot
-For internal use on the USC CTF team's discord server
+- Discord bot used to verify USC students through email
+- For internal use on the USC CTF team's discord server
+- Currently still in development
