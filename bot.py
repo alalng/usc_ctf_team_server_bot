@@ -49,7 +49,7 @@ serverdbfile_lock = asyncio.Lock()
 server_db = []
 
 #-------------------#
-# HELPER FUNCTIONS	#
+# HELPER FUNCTIONS  #
 #-------------------#
 
 # Get email credentials
