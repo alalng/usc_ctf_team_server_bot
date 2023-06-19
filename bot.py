@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 #---------------------------------------------------#
-#	Author: @alng                                   #
-#	Version: 0.0                                    #
+#   Author: @alng                                   #
+#   Version: 0.0                                    #
 #                                                   #
-#	Description:                                    #
+#   Description:                                    #
 #                                                   #
 #     USC email verification bot                    #
 #     For use on the USC CTF TEAM discord server    #
