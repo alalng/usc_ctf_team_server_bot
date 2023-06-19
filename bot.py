@@ -325,9 +325,6 @@ def send_email(user):
 		s.login(sender, sender_pw)
 		s.send_message(msg)
 
-	print(msg)
-	print(pending_verification)
-	
 	return
 
 #-----------------------#
