@@ -399,6 +399,7 @@ async def emote(ctx):
 	await ctx.send(emote)
 
 # VERIFY USC STUDENT WITH EMAIL
+# TODO: support DMs
 @bot.command()
 async def verify(ctx, *, content=str):
 
@@ -471,6 +472,7 @@ async def verify(ctx, *, content=str):
 		return
 
 # VERIFY USC STUDENT EMAIL CODE
+# TODO: support DMs
 @bot.command()
 async def code(ctx, *, content=str):
 	
