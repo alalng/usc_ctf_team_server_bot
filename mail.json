@@ -1,0 +1,6 @@
+{
+        "server": "smtp.domain.com",
+        "server_port": 1337,
+        "addr": "bot_email@domain.com",
+        "pw": "bot_email_password"
+}
