@@ -17,6 +17,7 @@ import ssl
 from email.message import EmailMessage
 
 # FOR DISCORD
+import random
 import discord
 import asyncio
 from discord.ext import commands
@@ -36,7 +37,7 @@ admins = ["alng"]
 token_file = "./token.txt"
 intents = discord.Intents.default()
 intents.message_content = True
-curr_activity = discord.Activity(name=f"Clash Royale", type=discord.ActivityType.playing)
+curr_activity = discord.Activity(name="Clash Royale", type=discord.ActivityType.playing)
 bot = commands.Bot(command_prefix='/', intents=intents, activity=curr_activity)
 
 # OTHER GLOBAL VARS
@@ -47,6 +48,7 @@ server_db_file = "./serverdb.json"
 serverdb_lock = asyncio.Lock()
 serverdbfile_lock = asyncio.Lock()
 server_db = []
+smtp_lock = asyncio.Lock()
 
 #-------------------#
 # HELPER FUNCTIONS  #
@@ -222,7 +224,9 @@ def valid_email(email):
 	return True
 
 # Send verification email to user
-def send_email(user):
+async def send_email(user):
+
+	global smtp_lock
 
 	# setup email creds and addrs
 	creds = email_creds()
@@ -317,15 +321,22 @@ def send_email(user):
 	msg.set_content(text_cnt)		# text part
 	msg.add_alternative(html_cnt, subtype="html")	# html part
 
-	# setup server connection and send email
-	with smtplib.SMTP(smtp_server, smtp_port) as s:
-		s.ehlo()	# use extended proto
-		s.starttls(context=smtp_ctx)
-		s.ehlo()	# use extended proto
-		s.login(sender, sender_pw)
-		s.send_message(msg)
+	# only singular connections to server to prevent spam detection
+	async with smtp_lock:
 
-	return
+		try:
+			# setup server connection and send email
+			with smtplib.SMTP(smtp_server, smtp_port) as s:
+				s.ehlo()	# use extended proto
+				s.starttls(context=smtp_ctx)
+				s.ehlo()	# use extended proto
+				s.login(sender, sender_pw)
+				s.send_message(msg)
+
+		except:
+			return False # smtp server connection failure
+
+	return True # email sent
 
 #-----------------------#
 # START OF BOT COMMANDS	#
@@ -391,8 +402,34 @@ async def dbg(ctx, *, content=str):
 # HEEHEEHEEHAW
 @bot.command()
 async def emote(ctx):
-	#TODO: send emotes
-	emote = "NOT IMPLEMENTED YET"
+
+	# clash emotes
+	knight_happy = "<:clashae:1116060381744468000>"
+	goblin_kiss = "<:clashkiss:1116060363608305804>"
+	goblin_boo = "<:clashgoblin:1116060368331079690>"
+	goblin_cool = "<:clashgoblincool:1116060365885812757>"
+	goblin_happy = "<:clashgoblinhappy:1116060357983735889>"
+	goblin_scared = "<:clashscared:1116060383946477569>"
+	goblin_victory = "<:clashvictory:1116060380062552104>"
+	king_happy = "<:clashkinghappy:1116060360869421197>"
+	king_thumbs_up = "<:clashkinglike:1116060371069972560>"
+	king_cry = "<:clashkingsad:1116060374148591687>"	
+
+	# create emote list
+	emote_list = []
+	emote_list.append(knight_happy)
+	emote_list.append(goblin_kiss)
+	emote_list.append(goblin_boo)
+	emote_list.append(goblin_cool)
+	emote_list.append(goblin_happy)
+	emote_list.append(goblin_scared)
+	emote_list.append(goblin_victory)
+	emote_list.append(king_happy)
+	emote_list.append(king_thumbs_up)
+	emote_list.append(king_cry)
+
+	# choose random emote and send
+	emote = random.choice(emote_list)
 	await ctx.send(emote)
 
 # VERIFY USC STUDENT WITH EMAIL
@@ -459,7 +496,8 @@ async def verify(ctx, *, content=str):
 				reply_msg = "Verification email sent. Please check your inbox (spam folder)."
 
 		# do the actual email sending stuff
-		send_email(entry)
+		if not await send_email(entry):
+			reply_msg = "Bot Error: failed to establish connection to remote SMTP server."
 		await ctx.send(reply_msg)
 		return
 
