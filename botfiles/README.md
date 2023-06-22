@@ -1,0 +1,2 @@
+- This directory contains creds/files used by the bot
+- These are only sample files
