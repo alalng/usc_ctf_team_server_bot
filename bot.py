@@ -33,18 +33,23 @@ import hashlib
 # SERVER/BOT ADMINS
 admins = ["alng"]
 
+# FILES
+file_dir = "./botfiles/"
+token_file = file_dir + "token.txt"
+email_creds_file = file_dir + "mail.json"
+server_db_file = file_dir + "serverdb.json"
+
 # BOT SETUP
-token_file = "./token.txt"
 intents = discord.Intents.default()
 intents.message_content = True
-curr_activity = discord.Activity(name="Clash Royale", type=discord.ActivityType.playing)
+activity_name = "Clash Royale"
+curr_activity = discord.Activity(name=activity_name, type=discord.ActivityType.playing)
 bot = commands.Bot(command_prefix='/', intents=intents, activity=curr_activity)
 
 # OTHER GLOBAL VARS
 verified_role = "USC student"
 pending_verification = []
 verifydb_lock = asyncio.Lock()
-server_db_file = "./serverdb.json"
 serverdb_lock = asyncio.Lock()
 serverdbfile_lock = asyncio.Lock()
 server_db = []
@@ -56,7 +61,10 @@ smtp_lock = asyncio.Lock()
 
 # Get email credentials
 def email_creds():
-	with open("./mail.json", "r") as f:
+	
+	global email_creds_file
+
+	with open(email_creds_file, "r") as f:
 		return json.loads(f.read())
 
 # For hashing email
@@ -160,18 +168,18 @@ def parse_email(msg, ctx):
 	# now check for other errors
 	try:
 		# invalid num of args
-		if (len(token_stream) != 1):
+		if len(token_stream) != 1:
 			err += "Invalid number of args.\n"
 			err += "Sample usage syntax: /verify your_name@usc.edu"
 			raise
 
 		# no email supplied
-		if (not token_stream):
+		if not token_stream:
 			err += "No email supplied."
 			raise
 		
 		# check for valid email
-		if (valid_email(token_stream[0])):
+		if valid_email(token_stream[0]):
 			email = token_stream[0]
 		else:
 			err += "Invalid email format || Not a USC email."
@@ -204,7 +212,7 @@ def valid_email(email):
 	valid_set = set(valid_local)
 
 	# do some basic format checking first
-	if (email.count('@') != 1):
+	if email.count('@') != 1:
 		return False
 
 	try:
@@ -238,6 +246,7 @@ async def send_email(user):
 	smtp_ctx = ssl.create_default_context()
 	smtp_server = creds["server"]
 	smtp_port = creds["server_port"]
+	delay = 1
 	
 	# format email message
 	msg = EmailMessage()
@@ -321,7 +330,7 @@ async def send_email(user):
 	msg.set_content(text_cnt)		# text part
 	msg.add_alternative(html_cnt, subtype="html")	# html part
 
-	# only singular connections to server to prevent spam detection
+	# only singular connections to server to prevent bot/spam detection
 	async with smtp_lock:
 
 		try:
@@ -332,11 +341,12 @@ async def send_email(user):
 				s.ehlo()	# use extended proto
 				s.login(sender, sender_pw)
 				s.send_message(msg)
+				await asyncio.sleep(delay)
+				return True # email sent
 
 		except:
+			asyncio.sleep(delay)
 			return False # smtp server connection failure
-
-	return True # email sent
 
 #-----------------------#
 # START OF BOT COMMANDS	#
@@ -446,7 +456,7 @@ async def verify(ctx, *, content=str):
 	reply_msg = ""
 
 	# make sure they are not already verified
-	if (verified_role in [r.name for r in user.roles]):
+	if verified_role in [r.name for r in user.roles]:
 		await ctx.send("User: @{} is already verified.".format(user.name))
 		return
 	
@@ -524,7 +534,7 @@ async def code(ctx, *, content=str):
 		return
 	
 	# make sure they are not already verified
-	if (verified_role in [r.name for r in curr_user.roles]):
+	if verified_role in [r.name for r in curr_user.roles]:
 		await ctx.send("User: @{} is already verified.".format(curr_user.name))
 		return
 
