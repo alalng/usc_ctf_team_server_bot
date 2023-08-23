@@ -220,7 +220,7 @@ def valid_email(email):
 	except:
 		return False
 
-	if len(local) > maxlen_local:
+	if len(local) > maxlen_local or len(local) == 0:
 		return False
 
 	if domain != "usc.edu":
@@ -345,7 +345,7 @@ async def send_email(user):
 				return True # email sent
 
 		except:
-			asyncio.sleep(delay)
+			await asyncio.sleep(delay)
 			return False # smtp server connection failure
 
 #-----------------------#
